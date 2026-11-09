@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "allow": ["Bash(pytest:*)", "Bash(python -m pytest:*)", "Bash(python -m agent_lint:*)", "Read", "Grep", "Glob"],
+    "deny": ["Read(./.env)", "Read(./.env.*)", "Read(./secrets/**)", "Bash(git push:*)"]
+  }
+}

@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import os
+import re
 import sys
 from dataclasses import asdict
 from pathlib import Path
@@ -25,7 +27,8 @@ def discover(root: Path) -> list[tuple[Path, str]]:
         parts = d.parts
         for f in files:
             p = d / f
-            if f == ".mcp.json" or (f.endswith(".json") and f.startswith("mcp") and ".cursor" in parts):
+            if (f == ".mcp.json" or f == "claude_desktop_config.json" or f == ".claude.json"
+                    or (f == "mcp.json" and parts and parts[-1] in {".cursor", ".vscode"})):
                 found.append((p, "mcp"))
             elif f in {"settings.json", "settings.local.json"} and parts and parts[-1] == ".claude":
                 found.append((p, "settings"))
@@ -38,15 +41,38 @@ def discover(root: Path) -> list[tuple[Path, str]]:
     return found
 
 
-def lint(root: Path) -> tuple[list[Finding], int]:
+INLINE_IGNORE = re.compile(r"agent-lint:\s*ignore\s+((?:AL\d{3}[\s,]*)+)", re.I)
+
+
+def load_config(root: Path) -> dict:
+    """Optional `.agent-lint.json` at the scan root: {"ignore": [...], "ignore_paths": [...]}"""
+    p = root / ".agent-lint.json"
+    if not p.is_file():
+        return {}
+    try:
+        cfg = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        raise SystemExit(f"agent-lint: cannot read {p}: {e}")
+    return cfg if isinstance(cfg, dict) else {}
+
+
+def lint(root: Path, ignore: set[str] | None = None) -> tuple[list[Finding], int]:
+    cfg = load_config(root)
+    ignore = {r.upper() for r in (ignore or set()) | set(cfg.get("ignore", []))}
+    ignore_paths = list(cfg.get("ignore_paths", []))
     files = discover(root)
     findings: list[Finding] = []
+    scanned = 0
     for path, kind in files:
+        rel = path.relative_to(root) if path.is_relative_to(root) else path
+        if any(fnmatch.fnmatch(rel.as_posix(), pat) for pat in ignore_paths):
+            continue
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        rel = path.relative_to(root) if path.is_relative_to(root) else path
+        scanned += 1
+        file_ignore = {r.upper() for m in INLINE_IGNORE.finditer(text) for r in re.findall(r"AL\d{3}", m.group(1), re.I)}
         batch = scan_text(rel, text)
         if kind == "mcp":
             batch += check_mcp_json(rel, text)
@@ -54,9 +80,9 @@ def lint(root: Path) -> tuple[list[Finding], int]:
             batch += check_settings(rel, text)
         elif kind in {"subagent", "skill"}:
             batch += check_agent_md(rel, text, kind)
-        findings += batch
+        findings += [f for f in batch if f.rule not in ignore and f.rule not in file_ignore]
     findings.sort(key=lambda f: (ORDER[f.level], f.file, f.line))
-    return findings, len(files)
+    return findings, scanned
 
 
 def to_sarif(findings: list[Finding]) -> dict:
@@ -106,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--output", "-o", help="write the report to a file")
     ap.add_argument("--fail-on", choices=["error", "warning", "note", "never"], default="error",
                     help="exit 1 when a finding at this level or worse exists (default: error)")
+    ap.add_argument("--ignore", default="", help="comma-separated rule IDs to skip, e.g. AL008,AL011")
     ap.add_argument("--list-rules", action="store_true")
     ap.add_argument("--version", action="version", version=f"agent-lint {__version__}")
     a = ap.parse_args(argv)
@@ -114,7 +141,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{r.id}  {r.level:<7}  {r.name:<30} {r.summary}")
         return 0
     root = Path(a.path).resolve()
-    findings, nfiles = lint(root)
+    findings, nfiles = lint(root, {r.strip() for r in a.ignore.split(",") if r.strip()})
     if a.format == "sarif":
         out = json.dumps(to_sarif(findings), indent=2)
     elif a.format == "json":

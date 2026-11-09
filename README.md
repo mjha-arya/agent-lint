@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: mjha-arya/agent-lint@v0.1.0
+      - uses: mjha-arya/agent-lint@v0.2.0
 ```
 
 Findings show up inline on pull requests, as code-scanning alerts.
@@ -67,9 +67,30 @@ Findings show up inline on pull requests, as code-scanning alerts.
 
 ## What it scans
 
-`.mcp.json` · `.claude/settings.json` · `.claude/settings.local.json` · `.claude/agents/*.md` · `**/SKILL.md` · `CLAUDE.md` / `AGENTS.md` · scripts under `hooks/`
+| Tool | Files |
+|---|---|
+| Claude Code | `.mcp.json` · `.claude/settings.json` · `.claude/settings.local.json` · `.claude/agents/*.md` · `**/SKILL.md` · `CLAUDE.md` · hook scripts · `~/.claude.json` (per-project servers) |
+| Claude Desktop | `claude_desktop_config.json` |
+| Cursor | `.cursor/mcp.json` |
+| VS Code | `.vscode/mcp.json` (`servers` block) |
+| Any agent | `AGENTS.md` |
 
 **Not checked (yet):** plugin marketplaces, Cursor rules, hook command semantics beyond pipe-to-shell, or whether a pinned version is itself safe. agent-lint tells you *what is unpinned or over-privileged*, not whether a package is malicious.
+
+## Suppressing a finding
+
+Accepted risk should be written down, not silenced globally. Three levels:
+
+```markdown
+<!-- agent-lint: ignore AL006 -->        inside an agent/skill .md: this file only
+```
+```json
+// .agent-lint.json at the scan root: whole project
+{ "ignore": ["AL008"], "ignore_paths": ["tests/fixtures/**"] }
+```
+```bash
+agent-lint . --ignore AL008,AL011       # this run only
+```
 
 ## Design
 
@@ -79,7 +100,7 @@ Findings show up inline on pull requests, as code-scanning alerts.
 
 ## Roadmap
 
-Cursor (`.cursor/mcp.json`, rules) · Codex/OpenCode configs · rule suppression comments · a `--fix` mode that pins versions from the registry.
+Cursor rules · Codex/OpenCode/Windsurf configs · a `--fix` mode that pins versions from the registry · plugin marketplace checks.
 
 Issues and PRs welcome, especially new rules with a fixture showing the risky config.
 

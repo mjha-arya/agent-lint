@@ -1,0 +1,15 @@
+name: False positive
+description: agent-lint flagged something that is actually fine
+labels: ["false-positive"]
+body:
+  - type: input
+    id: rule
+    attributes: { label: Rule ID, placeholder: AL002 }
+    validations: { required: true }
+  - type: textarea
+    id: config
+    attributes: { label: Config that was flagged (redact secrets), render: json }
+    validations: { required: true }
+  - type: textarea
+    id: why
+    attributes: { label: Why it's safe }

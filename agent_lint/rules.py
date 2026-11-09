@@ -157,11 +157,17 @@ def check_mcp_json(path: Path, text: str) -> list[Finding]:
         data = json.loads(text)
     except json.JSONDecodeError:
         return []
-    servers = data.get("mcpServers", {}) if isinstance(data, dict) else {}
+    if not isinstance(data, dict):
+        return []
+    # .mcp.json / Cursor / Claude Desktop use "mcpServers"; VS Code .vscode/mcp.json uses "servers";
+    # ~/.claude.json nests per-project "mcpServers" under "projects".
+    blocks = [data.get("mcpServers"), data.get("servers")]
+    blocks += [p.get("mcpServers") for p in (data.get("projects") or {}).values() if isinstance(p, dict)]
     out = []
-    for name, cfg in servers.items():
-        if isinstance(cfg, dict):
-            out += check_mcp_server(path, text, name, cfg)
+    for servers in blocks:
+        for name, cfg in (servers or {}).items() if isinstance(servers, dict) else []:
+            if isinstance(cfg, dict):
+                out += check_mcp_server(path, text, name, cfg)
     return out
 
 

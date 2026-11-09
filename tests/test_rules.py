@@ -59,3 +59,27 @@ def test_frontmatter_multiline():
 def test_empty_dir_reports_not_checked(tmp_path, capsys):
     assert main([str(tmp_path)]) == 0
     assert "NOT CHECKED" in capsys.readouterr().out
+
+
+def test_vscode_and_desktop_configs():
+    findings, _ = lint(FIX / "bad")
+    files = {(Path(f.file).as_posix(), f.rule) for f in findings}
+    assert (".vscode/mcp.json", "AL002") in files
+    assert ("claude_desktop_config.json", "AL002") in files
+
+
+def test_suppression_inline_and_config():
+    findings, n = lint(FIX / "suppressed")
+    assert n == 2 and findings == []
+
+
+def test_cli_ignore_flag():
+    findings, _ = lint(FIX / "bad", {"AL002", "al006"})
+    assert not any(f.rule in {"AL002", "AL006"} for f in findings)
+
+
+def test_ignore_paths(tmp_path):
+    (tmp_path / "vendor").mkdir()
+    (tmp_path / "vendor" / ".mcp.json").write_text('{"mcpServers":{"x":{"command":"npx","args":["pkg"]}}}')
+    (tmp_path / ".agent-lint.json").write_text('{"ignore_paths": ["vendor/**"]}')
+    assert lint(tmp_path) == ([], 0)
