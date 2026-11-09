@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "filesystem": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem@2025.8.21", "."] },
+    "github": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-github@2025.4.8"],
+                "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" } },
+    "db": { "command": "docker", "args": ["run", "-i", "--rm", "acme/db-mcp@sha256:0123456789abcdef"] },
+    "local": { "type": "http", "url": "http://localhost:8080/mcp" }
+  }
+}

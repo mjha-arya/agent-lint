@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-lint"
+version = "0.1.0"
+description = "Least-privilege and supply-chain linter for Claude Code agents, skills, MCP servers and settings."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Manish Jha"}]
+keywords = ["claude-code", "mcp", "ai-agents", "security", "linter", "sarif", "supply-chain"]
+classifiers = ["Programming Language :: Python :: 3", "Topic :: Security", "Environment :: Console"]
+dependencies = []
+
+[project.scripts]
+agent-lint = "agent_lint.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/mjha-arya/agent-lint"
+
+[tool.setuptools]
+packages = ["agent_lint"]

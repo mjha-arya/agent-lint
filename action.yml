@@ -1,0 +1,33 @@
+name: "agent-lint"
+description: "Least-privilege and supply-chain linter for Claude Code agents, skills, MCP servers and settings. Uploads SARIF to code scanning."
+author: "Manish Jha"
+branding:
+  icon: "shield"
+  color: "purple"
+inputs:
+  path:
+    description: "Project root to scan"
+    default: "."
+  fail-on:
+    description: "error | warning | note | never"
+    default: "error"
+  upload-sarif:
+    description: "Upload results to GitHub code scanning"
+    default: "true"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - shell: bash
+      run: pip install "${{ github.action_path }}"
+    - shell: bash
+      run: agent-lint "${{ inputs.path }}" --format sarif -o agent-lint.sarif --fail-on never
+    - if: inputs.upload-sarif == 'true'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: agent-lint.sarif
+        category: agent-lint
+    - shell: bash
+      run: agent-lint "${{ inputs.path }}" --fail-on "${{ inputs.fail-on }}"
