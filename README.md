@@ -6,6 +6,7 @@
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![deps](https://img.shields.io/badge/dependencies-0-brightgreen)
 ![license](https://img.shields.io/badge/license-MIT-green)
+[![marketplace](https://img.shields.io/badge/GitHub_Marketplace-Claude_Code_Agent_Lint-2ea44f?logo=github)](https://github.com/marketplace/actions/claude-code-agent-lint)
 
 ![agent-lint output](docs/demo.svg)
 
