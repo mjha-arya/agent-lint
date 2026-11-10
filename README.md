@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: mjha-arya/agent-lint@v0.2.0
+      - uses: mjha-arya/agent-lint@v0.2.1
 ```
 
 Findings show up inline on pull requests, as code-scanning alerts.

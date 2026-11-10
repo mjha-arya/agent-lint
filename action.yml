@@ -1,5 +1,5 @@
-name: "agent-lint"
-description: "Least-privilege and supply-chain linter for Claude Code agents, skills, MCP servers and settings. Uploads SARIF to code scanning."
+name: "Claude Code Agent Lint"
+description: "Least-privilege and supply-chain linter for Claude Code agents, skills and MCP configs. SARIF to code scanning."
 author: "Manish Jha"
 branding:
   icon: "shield"

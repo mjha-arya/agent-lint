@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-lint"
-version = "0.2.0"
+version = "0.2.1"
 description = "Least-privilege and supply-chain linter for Claude Code agents, skills, MCP servers and settings."
 readme = "README.md"
 requires-python = ">=3.10"

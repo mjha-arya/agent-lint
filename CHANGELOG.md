@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1 — 2026-11-10
+- Marketplace listing: action renamed to "Claude Code Agent Lint" (the CLI is still `agent-lint`), shorter description.
+
 ## 0.2.0 — 2026-11-09
 - **New config sources:** VS Code `.vscode/mcp.json` (`servers` block), Claude Desktop `claude_desktop_config.json`, and `~/.claude.json` per-project MCP servers.
 - **Suppressions:** inline `<!-- agent-lint: ignore ALxxx -->`, a project `.agent-lint.json` (`ignore`, `ignore_paths`), and a `--ignore` CLI flag.
